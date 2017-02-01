@@ -11,7 +11,7 @@ CDROM := disks/$(ISOFILE)
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
 
-ROOTDIR := rootfs
+ROOTDIR ?= mnt
 
 .PHONY: all nuke mount umount bootstrap
 
