@@ -1,0 +1,19 @@
+#!/bin/execlineb -S2
+sudo
+
+backtick -ni LODEV { losetup -f --show -P $1 }
+import -ui LODEV
+
+ifte {
+    exit 0
+} {
+    foreground { umount -R $2 }
+    losetup -d $LODEV
+}
+
+if { mount ${LODEV}p2 ${2} }
+if { mkdir -p ${2}/boot ${2}/dev ${2}/sys ${2}/proc ${2}/media/cdrom }
+if { mount ${LODEV}p1 ${2}/boot }
+if { mount -o bind /dev ${2}/dev }
+if { mount -o bind /proc ${2}/proc }
+if { mount -o bind /sys ${2}/sys }

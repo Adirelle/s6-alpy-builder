@@ -1,0 +1,6 @@
+#!/bin/execlineb -s1
+sudo
+foreground {
+    umount -R $1
+}
+sync

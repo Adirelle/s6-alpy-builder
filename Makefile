@@ -11,6 +11,10 @@ CDROM := disks/$(ISOFILE)
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
 
+ROOTDIR := rootfs
+
+.PHONY: all nuke mount umount bootstrap
+
 all: $(CDROM) $(DISKIMG)
 
 nuke:
@@ -21,4 +25,13 @@ $(CDROM):
 
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
+
+mount: $(DISKIMG) $(ROOTDIR)
+	tools/mount $(DISKIMG) $(ROOTDIR)
+
+umount:
+	tools/umount $(ROOTDIR)
+
+bootstrap: mount
+
 
