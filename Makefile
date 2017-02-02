@@ -17,21 +17,23 @@ ROOTDIR ?= mnt
 
 all: $(CDROM) $(DISKIMG)
 
-nuke:
-	rm -f $(CDROM) $(DISKIMG)
-
 $(CDROM):
 	wget -O $(CDROM) $(MIRROR)/latest-stable/releases/$(ARCH)/$(ISOFILE)
 
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
-mount: $(DISKIMG) $(ROOTDIR)
+nuke:
+	rm -f $(CDROM) $(DISKIMG)
+
+mount: $(DISKIMG) | $(ROOTDIR)/bin
+
+$(ROOTDIR)/bin:
 	tools/mount $(DISKIMG) $(ROOTDIR)
 
-umount:
-	tools/umount $(ROOTDIR)
+umount: $(ROOTDIR)/.gitignore
 
-bootstrap: mount
+$(ROOTDIR)/.gitignore:
+	tools/umount $(ROOTDIR)
 
 

@@ -12,8 +12,14 @@ ifte {
 }
 
 if { mount ${LODEV}p2 ${2} }
-if { mkdir -p ${2}/boot ${2}/dev ${2}/sys ${2}/proc ${2}/media/cdrom }
+
+if {
+    cd ${2}
+    mkdir -p boot dev sys proc media/cdrom opt etc bin sbin var tmp
+}
+
 if { mount ${LODEV}p1 ${2}/boot }
 if { mount -o bind /dev ${2}/dev }
 if { mount -o bind /proc ${2}/proc }
 if { mount -o bind /sys ${2}/sys }
+mount -t tmpfs tmpfs ${2}/tmp
