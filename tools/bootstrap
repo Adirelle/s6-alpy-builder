@@ -1,2 +1,35 @@
-#!/bin/execlineb -S3
-# Usage: bootstrap IMGFILE ROOTDIR CDROM
+#!/bin/execlineb
+multisubstitute {
+    importas -ui ROOTDIR 1
+    importas -ui ARCH 2
+    importas -ui MIRROR 3
+}
+emptyenv -P
+
+define -s APK "apk-tools/sbin/apk.static --root=${ROOTDIR} --arch=${ARCH}"
+
+sudo
+
+if { mkdir -p ${ROOTDIR}/etc/apk/keys }
+if {
+    wget -r -nd -nH -L -np -nv
+        -A alpine-*.rsa.pub
+        -P ${ROOTDIR}/etc/apk/keys
+        https://www.alpinelinux.org/keys/
+}
+
+if {
+    redirfd -w 1 ${ROOTDIR}/etc/apk/repositories
+    s6-echo ${MIRROR}/main
+}
+
+if { $APK add --initdb }
+if { $APK update }
+if { $APK add apk-tools }
+if { $APK add execline }
+
+export PATH /bin:/usr/bin:/sbin:/usr/sbin
+chroot ${ROOTDIR}
+apk add
+    alpine-keys alpine-baselayout apk-tools busybox
+    syslinux linux-grsec linux-virtgrsec s6 s6-rc s6-linux-init e2fsprogs

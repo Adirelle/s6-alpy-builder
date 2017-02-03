@@ -1,12 +1,8 @@
 
-THIS_ARCH != uname -m
-ARCH ?= $(THIS_ARCH)
-MIRROR := http://dl-cdn.alpinelinux.org/alpine/
-VERSION := 3.5.1
-FLAVOR := virt
-
-ISOFILE := alpine-$(FLAVOR)-$(VERSION)-$(ARCH).iso
-CDROM := disks/$(ISOFILE)
+MY_ARCH != uname -m
+ARCH ?= $(MY_ARCH)
+MIRROR := http://dl-cdn.alpinelinux.org/alpine/latest-stable
+APK_VERSION := 2.6.8-r2
 
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
@@ -18,18 +14,22 @@ ROOTDIR ?= rootfs
 all: bootstrap
 
 clean: umount
-	rm -f ${DISKIMG}
+	rm -rf ${DISKIMG} apk-tools/*
 
 dist-clean: clean
-	rm -f ${CDROM}
 
 bootstrap: | $(ROOTDIR)/bin/ash
 
-$(ROOTDIR)/bin/ash: | $(ROOTDIR)/bin
-	tools/bootstrap ${ROOTDIR}
+$(ROOTDIR)/bin/ash: | mount apk-tools/sbin/apk.static
+	tools/bootstrap ${ROOTDIR} ${ARCH} ${MIRROR}
 
-$(ROOTDIR)/bin: | $(DISKIMG) $(CDROM)
-	tools/mount $(DISKIMG) $(ROOTDIR) $(CDROM)
+apk-tools/sbin/apk.static:
+	wget -O /tmp/apk-tools-static.apk $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
+	tar -xvf /tmp/apk-tools-static.apk --one-top-level=apk-tools
+	rm /tmp/apk-tools-static.apk
+
+$(ROOTDIR)/bin: | $(DISKIMG)
+	tools/mount $(DISKIMG) $(ROOTDIR)
 
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
@@ -40,9 +40,6 @@ umount: | $(ROOTDIR)/.gitignore
 
 $(ROOTDIR)/.gitignore:
 	tools/umount $(ROOTDIR)
-
-$(CDROM):
-	wget -O $(CDROM) $(MIRROR)/latest-stable/releases/$(ARCH)/$(ISOFILE)
 
 chroot: mount $(ROOTDIR)/bin/ash
 	tools/chroot ${ROOTDIR}
