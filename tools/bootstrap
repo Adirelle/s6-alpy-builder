@@ -1,0 +1,2 @@
+#!/bin/execlineb -S3
+# Usage: bootstrap IMGFILE ROOTDIR CDROM

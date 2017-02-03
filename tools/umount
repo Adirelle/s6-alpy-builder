@@ -1,4 +1,6 @@
-#!/bin/execlineb -s1
+#!/bin/execlineb -S1
+# Usage: unmount ROOTDIR
+
 sudo
 foreground {
     umount -R $1

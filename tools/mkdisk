@@ -1,4 +1,5 @@
 #!/bin/execlineb -S2
+# Usage: mkdisk IMGFILE SIZE
 
 if {
     backtick -ni OFFSET { dc -e "${2} 2097152 * 1 - p" }
@@ -22,7 +23,6 @@ backtick -ni LODEV { losetup -f --show -P ${1} }
 import -u LODEV
 
 foreground {
-
     if { mkfs.ext3 -L boot ${LODEV}p1 }
     if { mkfs.ext4 -L root ${LODEV}p2 }
     if { mkswap -L swap ${LODEV}p3 }
@@ -30,4 +30,3 @@ foreground {
 }
 
 losetup -d $LODEV
-

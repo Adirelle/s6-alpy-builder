@@ -1,4 +1,6 @@
-#!/bin/execlineb -S2
+#!/bin/execlineb -S3
+# Usage: mount IMGFILE ROOTDIR ISOFILE
+
 sudo
 
 backtick -ni LODEV { losetup -f --show -P $1 }
@@ -22,4 +24,5 @@ if { mount ${LODEV}p1 ${2}/boot }
 if { mount -o bind /dev ${2}/dev }
 if { mount -o bind /proc ${2}/proc }
 if { mount -o bind /sys ${2}/sys }
-mount -t tmpfs tmpfs ${2}/tmp
+if { mount -t tmpfs tmpfs ${2}/tmp }
+mount ${3} ${2}/media/cdrom

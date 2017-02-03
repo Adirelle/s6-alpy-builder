@@ -11,29 +11,38 @@ CDROM := disks/$(ISOFILE)
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
 
-ROOTDIR ?= mnt
+ROOTDIR ?= rootfs
 
-.PHONY: all nuke mount umount bootstrap
+.PHONY: all clean dist-clean bootstrap mount umount chroot
 
-all: $(CDROM) $(DISKIMG)
+all: bootstrap
 
-$(CDROM):
-	wget -O $(CDROM) $(MIRROR)/latest-stable/releases/$(ARCH)/$(ISOFILE)
+clean: umount
+	rm -f ${DISKIMG}
+
+dist-clean: clean
+	rm -f ${CDROM}
+
+bootstrap: | $(ROOTDIR)/bin/ash
+
+$(ROOTDIR)/bin/ash: | $(ROOTDIR)/bin
+	tools/bootstrap ${ROOTDIR}
+
+$(ROOTDIR)/bin: | $(DISKIMG) $(CDROM)
+	tools/mount $(DISKIMG) $(ROOTDIR) $(CDROM)
 
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
-nuke:
-	rm -f $(CDROM) $(DISKIMG)
+mount: | $(ROOTDIR)/bin
 
-mount: $(DISKIMG) | $(ROOTDIR)/bin
-
-$(ROOTDIR)/bin:
-	tools/mount $(DISKIMG) $(ROOTDIR)
-
-umount: $(ROOTDIR)/.gitignore
+umount: | $(ROOTDIR)/.gitignore
 
 $(ROOTDIR)/.gitignore:
 	tools/umount $(ROOTDIR)
 
+$(CDROM):
+	wget -O $(CDROM) $(MIRROR)/latest-stable/releases/$(ARCH)/$(ISOFILE)
 
+chroot: mount $(ROOTDIR)/bin/ash
+	tools/chroot ${ROOTDIR}
