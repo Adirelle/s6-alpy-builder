@@ -1,8 +1,11 @@
-#!/bin/execlineb -S1
-# Usage: unmount ROOTDIR
+#!/bin/execlineb
+multisubstitute {
+    importas -ui ROOTDIR 1
+}
+emptyenv -P
 
 sudo
 foreground {
-    umount -R $1
+    umount -R $ROOTDIR
 }
 sync

@@ -1,10 +1,14 @@
-#!/bin/execlineb -S2
-# Usage: mkdisk IMGFILE SIZE
+#!/bin/execlineb
+multisubstitute {
+    importas -ui IMGFILE 1
+    importas -ui SIZE 2
+}
+emptyenv -P
 
 if {
-    backtick -ni OFFSET { dc -e "${2} 2097152 * 1 - p" }
+    backtick -ni OFFSET { dc -e "${SIZE} 2097152 * 1 - p" }
     import -u OFFSET
-    dd if=/dev/zero of=${1} bs=512 count=1 seek=${OFFSET}
+    dd if=/dev/zero of=${IMGFILE} bs=512 count=1 seek=${OFFSET}
 }
 
 if {
@@ -14,19 +18,19 @@ if {
         -n 0:0:-1G   -t 0:8300 -c 0:root
         -n 0:0:0     -t 0:8200 -c 0:swap
         -p
-        ${1}
+        ${IMGFILE}
 }
 
 sudo
 
-backtick -ni LODEV { losetup -f --show -P ${1} }
+backtick -ni LODEV { losetup -f --show -P ${IMGFILE} }
 import -u LODEV
 
 foreground {
     if { mkfs.ext3 -L boot ${LODEV}p1 }
     if { mkfs.ext4 -L root ${LODEV}p2 }
     if { mkswap -L swap ${LODEV}p3 }
-    echo ${1} DONE
+    echo ${IMGFILE} DONE
 }
 
 losetup -d $LODEV

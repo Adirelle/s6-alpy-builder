@@ -1,7 +1,9 @@
-#!/bin/execlineb -S1
-# Usage: chroot ROOTDIR
+#!/bin/execlineb
+multisubstitute {
+    importas -ui ROOTDIR 1
+}
 
 sudo
 emptyenv
 export PATH /bin:/usr/bin:/sbin:/usr/sbin
-chroot ${1} /bin/ash
+chroot $ROOTDIR /bin/ash

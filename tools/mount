@@ -1,28 +1,31 @@
-#!/bin/execlineb -S3
-# Usage: mount IMGFILE ROOTDIR ISOFILE
+#!/bin/execlineb
+multisubstitute {
+    importas -ui IMGFILE 1
+    importas -ui ROOTDIR 2
+}
+emptyenv -P
 
 sudo
 
-backtick -ni LODEV { losetup -f --show -P $1 }
+backtick -ni LODEV { losetup -f --show -P $IMGFILE }
 import -ui LODEV
 
 ifte {
     exit 0
 } {
-    foreground { umount -R $2 }
+    foreground { umount -R $ROOTDIR }
     losetup -d $LODEV
 }
 
-if { mount ${LODEV}p2 ${2} }
+if { mount ${LODEV}p2 ${ROOTDIR} }
 
 if {
-    cd ${2}
-    mkdir -p boot dev sys proc media/cdrom opt etc bin sbin var tmp
+    cd ${ROOTDIR}
+    mkdir -p boot dev sys proc media/cdrom opt etc bin sbin usr/bin usr/sbin var tmp
 }
 
-if { mount ${LODEV}p1 ${2}/boot }
-if { mount -o bind /dev ${2}/dev }
-if { mount -o bind /proc ${2}/proc }
-if { mount -o bind /sys ${2}/sys }
-if { mount -t tmpfs tmpfs ${2}/tmp }
-mount ${3} ${2}/media/cdrom
+if { mount ${LODEV}p1 ${ROOTDIR}/boot }
+if { mount -o bind /dev ${ROOTDIR}/dev }
+if { mount -o bind /proc ${ROOTDIR}/proc }
+if { mount -o bind /sys ${ROOTDIR}/sys }
+mount -t tmpfs tmpfs ${ROOTDIR}/tmp
