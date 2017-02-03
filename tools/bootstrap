@@ -27,6 +27,7 @@ if {
 if { $APK add --initdb }
 if { $APK update }
 if { $APK add alpine-baselayout apk-tools }
+if { cp /etc/resolv.conf ${ROOTDIR}/etc/resolv.conf }
 
 export PATH /bin:/usr/bin:/sbin:/usr/sbin
 chroot ${ROOTDIR}
