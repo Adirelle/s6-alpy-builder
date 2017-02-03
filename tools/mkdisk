@@ -17,7 +17,6 @@ if {
         -n 0:0:+100M -t 0:8300 -c 0:boot -A 0:set:2
         -n 0:0:-1G   -t 0:8300 -c 0:root
         -n 0:0:0     -t 0:8200 -c 0:swap
-        -p
         ${IMGFILE}
 }
 
@@ -27,8 +26,8 @@ backtick -ni LODEV { losetup -f --show -P ${IMGFILE} }
 import -u LODEV
 
 foreground {
-    if { mkfs.ext3 -L boot ${LODEV}p1 }
-    if { mkfs.ext4 -L root ${LODEV}p2 }
+    if { mkfs.ext3 -q -L boot ${LODEV}p1 }
+    if { mkfs.ext4 -q -L root ${LODEV}p2 }
     if { mkswap -L swap ${LODEV}p3 }
     echo ${IMGFILE} DONE
 }
