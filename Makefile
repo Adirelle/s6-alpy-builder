@@ -14,20 +14,17 @@ ROOTDIR ?= rootfs
 all: bootstrap
 
 clean: umount
-	rm -rf ${DISKIMG} apk-tools/*
+	rm -f ${DISKIMG}
 
 dist-clean: clean
+	rm -rf .cache/* apk-tools
 
 bootstrap: | $(ROOTDIR)/bin/ash
 
-$(ROOTDIR)/bin/ash: | mount apk-tools/sbin/apk.static
+$(ROOTDIR)/bin/ash: | mount apk-tools/sbin/apk.static .cache/keys
 	tools/bootstrap ${ROOTDIR} ${ARCH} ${MIRROR}
 
 mount: .cache | $(ROOTDIR)/.mounted
-apk-tools/sbin/apk.static:
-	wget -O /tmp/apk-tools-static.apk $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
-	tar -xvf /tmp/apk-tools-static.apk --one-top-level=apk-tools
-	rm /tmp/apk-tools-static.apk
 
 $(ROOTDIR)/.mounted: | $(DISKIMG)
 	tools/mount $(DISKIMG) $(ROOTDIR)
@@ -35,8 +32,14 @@ $(ROOTDIR)/.mounted: | $(DISKIMG)
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
+apk-tools/sbin/apk.static: .cache/apk-tools-static.apk apk-tools
+	tar -xvf $< --one-top-level=apk-tools
 
+.cache/apk-tools-static.apk: .cache
+	wget -O $@ $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
 
+.cache/keys: .cache
+	wget -r -nd -nH -L -np -nv -A alpine-*.rsa.pub -P .cache/keys https://www.alpinelinux.org/keys/
 
 umount: | $(ROOTDIR)/.unmounted
 
@@ -48,6 +51,9 @@ chroot: mount $(ROOTDIR)/bin/ash
 
 run: umount | $(DISKIMG)
 	tools/run $(DISKIMG)
+
+.cache apk-tools:
+	mkdir $@
 
 ifneq ($(MY_ARCH), $(ARCH))
 bootstrap: $(ROOTDIR)$(QEMU_USER)

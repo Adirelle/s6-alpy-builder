@@ -10,12 +10,13 @@ define -s APK "apk-tools/sbin/apk.static --root=${ROOTDIR} --arch=${ARCH}"
 
 sudo
 
-if { mkdir -p ${ROOTDIR}/etc/apk/keys }
 if {
-    wget -r -nd -nH -L -np -nv
-        -A alpine-*.rsa.pub
-        -P ${ROOTDIR}/etc/apk/keys
-        https://www.alpinelinux.org/keys/
+    mkdir -p ${ROOTDIR}/etc/apk/keys
+}
+
+if {
+    elglob KEYS .cache/keys/*.pub
+    cp -a $KEYS ${ROOTDIR}/etc/apk/keys
 }
 
 if {

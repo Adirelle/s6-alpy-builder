@@ -23,14 +23,27 @@ if { mount ${LODEV}p2 ${ROOTDIR} }
 
 if {
     cd ${ROOTDIR}
-    mkdir -p boot dev sys proc media/cdrom opt etc bin sbin usr/bin usr/sbin var tmp
+    mkdir -p boot dev proc sys tmp var/cache/apk
 }
 
 if { mount ${LODEV}p1 ${ROOTDIR}/boot }
-if { mount -o bind /dev ${ROOTDIR}/dev }
+
+if { mount -t tmpfs tmpfs ${ROOTDIR}/tmp }
+
 if { mount -o bind /proc ${ROOTDIR}/proc }
 if { mount -o bind /sys ${ROOTDIR}/sys }
-mount -t tmpfs tmpfs ${ROOTDIR}/tmp
+if { mount -o bind .cache ${ROOTDIR}/var/cache/apk }
+
+# Do not bind /dev, we want to override the disk devices
+if { mount -t tmpfs tmpfs ${ROOTDIR}/dev }
+if {
+    elglob DEVS /dev/*
+    cp -a $DEVS ${ROOTDIR}/dev
+}
+if { cp -a ${LODEV} ${ROOTDIR}/dev/sda }
+if { cp -a ${LODEV}p1 ${ROOTDIR}/dev/sda1 }
+if { cp -a ${LODEV}p2 ${ROOTDIR}/dev/sda2 }
+if { cp -a ${LODEV}p3 ${ROOTDIR}/dev/sda3 }
 
 foreground { rm -f ${ROOTDIR}/.unmounted }
 touch ${ROOTDIR}/.mounted
