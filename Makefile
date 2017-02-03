@@ -13,7 +13,7 @@ DISKSIZE := 8
 
 ROOTDIR ?= rootfs
 
-.PHONY: all clean dist-clean bootstrap mount umount chroot
+.PHONY: all clean dist-clean bootstrap mount umount chroot run
 
 all: bootstrap
 
@@ -46,3 +46,6 @@ $(CDROM):
 
 chroot: mount $(ROOTDIR)/bin/ash
 	tools/chroot ${ROOTDIR}
+
+run: umount | $(DISKIMG)
+	tools/run $(DISKIMG)
