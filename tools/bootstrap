@@ -26,8 +26,7 @@ if {
 
 if { $APK add --initdb }
 if { $APK update }
-if { $APK add apk-tools }
-if { $APK add execline }
+if { $APK add alpine-baselayout apk-tools }
 
 export PATH /bin:/usr/bin:/sbin:/usr/sbin
 chroot ${ROOTDIR}
