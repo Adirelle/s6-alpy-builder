@@ -46,3 +46,11 @@ chroot: mount $(ROOTDIR)/bin/ash
 
 run: umount | $(DISKIMG)
 	tools/run $(DISKIMG)
+
+ifneq ($(MY_ARCH), $(ARCH))
+bootstrap: $(ROOTDIR)$(QEMU_USER)
+
+$(ROOTDIR)$(QEMU_USER): | mount $(QEMU_USER)
+	sudo cp $< $@
+
+endif
