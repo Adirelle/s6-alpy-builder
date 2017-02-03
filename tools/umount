@@ -1,11 +1,18 @@
 #!/bin/execlineb
 multisubstitute {
-    importas -ui ROOTDIR 1
+    importas -ui IMGFILE 1
+    importas -ui ROOTDIR 2
 }
 emptyenv -P
 
 sudo
-foreground {
-    umount -R $ROOTDIR
+if { umount -R $ROOTDIR }
+foreground { sync }
+if {
+    forbacktickx -n LODEV { losetup -nO NAME -j $IMGFILE }
+    import -u LODEV
+    losetup -d $LODEV
 }
-sync
+
+foreground { rm -f ${ROOTDIR}/.mounted }
+touch ${ROOTDIR}/.unmounted

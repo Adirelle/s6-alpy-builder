@@ -14,7 +14,9 @@ ifte {
     exit 0
 } {
     foreground { umount -R $ROOTDIR }
-    losetup -d $LODEV
+    foreground { losetup -d $LODEV }
+    foreground { rm -f ${ROOTDIR}/.mounted }
+    touch ${ROOTDIR}/.unmounted
 }
 
 if { mount ${LODEV}p2 ${ROOTDIR} }
@@ -29,3 +31,6 @@ if { mount -o bind /dev ${ROOTDIR}/dev }
 if { mount -o bind /proc ${ROOTDIR}/proc }
 if { mount -o bind /sys ${ROOTDIR}/sys }
 mount -t tmpfs tmpfs ${ROOTDIR}/tmp
+
+foreground { rm -f ${ROOTDIR}/.unmounted }
+touch ${ROOTDIR}/.mounted

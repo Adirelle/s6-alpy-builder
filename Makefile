@@ -23,23 +23,25 @@ bootstrap: | $(ROOTDIR)/bin/ash
 $(ROOTDIR)/bin/ash: | mount apk-tools/sbin/apk.static
 	tools/bootstrap ${ROOTDIR} ${ARCH} ${MIRROR}
 
+mount: .cache | $(ROOTDIR)/.mounted
 apk-tools/sbin/apk.static:
 	wget -O /tmp/apk-tools-static.apk $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
 	tar -xvf /tmp/apk-tools-static.apk --one-top-level=apk-tools
 	rm /tmp/apk-tools-static.apk
 
-$(ROOTDIR)/bin: | $(DISKIMG)
+$(ROOTDIR)/.mounted: | $(DISKIMG)
 	tools/mount $(DISKIMG) $(ROOTDIR)
 
 $(DISKIMG):
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
-mount: | $(ROOTDIR)/bin
 
-umount: | $(ROOTDIR)/.gitignore
 
-$(ROOTDIR)/.gitignore:
-	tools/umount $(ROOTDIR)
+
+umount: | $(ROOTDIR)/.unmounted
+
+$(ROOTDIR)/.unmounted:
+	tools/umount $(DISKIMG) $(ROOTDIR)
 
 chroot: mount $(ROOTDIR)/bin/ash
 	tools/chroot ${ROOTDIR}
