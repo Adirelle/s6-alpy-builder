@@ -29,8 +29,13 @@ if { $APK update }
 if { $APK add alpine-baselayout apk-tools }
 if { cp /etc/resolv.conf ${ROOTDIR}/etc/resolv.conf }
 
-export PATH /bin:/usr/bin:/sbin:/usr/sbin
-chroot ${ROOTDIR}
-apk add
-    alpine-keys alpine-baselayout apk-tools busybox
-    syslinux linux-grsec linux-virtgrsec s6 s6-rc s6-linux-init e2fsprogs
+foreground {
+    export PATH /bin:/usr/bin:/sbin:/usr/sbin
+    chroot ${ROOTDIR}
+    apk add
+        alpine-baselayout apk-tools
+        alpine-keys
+        syslinux linux-grsec linux-virtgrsec
+        e2fsprogs
+        execline s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init
+}
