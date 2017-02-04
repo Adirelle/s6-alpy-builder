@@ -7,7 +7,7 @@ APK_VERSION := 2.6.8-r2
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
 
-ROOTDIR ?= rootfs
+ROOTDIR ?= mnt
 
 .PHONY: all clean dist-clean bootstrap mount umount chroot run
 
