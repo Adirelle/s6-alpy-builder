@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+sudo
+foreground {
+    umount -R rootfs
+}
+sync

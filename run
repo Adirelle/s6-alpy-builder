@@ -1,0 +1,8 @@
+#!/usr/bin/execlineb -P
+qemu-system-x86_64
+-enable-kvm
+-nographic
+-drive file=./main.img,format=raw
+-cdrom ./alpine-virt-3.5.1-x86_64.iso
+-netdev user,id=network0
+-device e1000,netdev=network0,mac=52:54:00:12:34:56

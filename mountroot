@@ -1,0 +1,4 @@
+#!/bin/execlineb -P
+sudo
+if { mount /dev/sdb3 rootfs }
+mount /dev/sdb1 rootfs/boot
