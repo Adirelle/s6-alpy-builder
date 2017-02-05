@@ -1,0 +1,19 @@
+#!/bin/execlineb -P
+cd rootfs/etc/s6-rc/source
+
+forbacktickx SVC { s6-ls -x *-log . }
+import -u SVC
+define LOGGER ${SVC}-log
+if -t { s6-test -x ${SVC}/run -a ! -d ${LOGGER} }
+if { s6-mkdir $LOGGER }
+if { redirfd -w 1 ${LOGGER}/type s6-echo longrun }
+if {
+    redirfd -w 1 ${LOGGER}/run
+    if { s6-echo "#/bin/execlineb -P" }
+    if { s6-echo "s6-applyuidgid -u 0 -g 4 --" }
+    s6-echo "s6-log -bp -- t T /var/log/${SVC}"
+}
+if { redirfd -w 1 ${LOGGER}/consumer-for s6-echo $SVC }
+if { redirfd -w 1 ${SVC}/pipeline-name s6-echo "${SVC}-pipeline" }
+if { redirfd -w 1 ${SVC}/producer-for s6-echo $LOGGER }
+

@@ -1,0 +1,19 @@
+#!/bin/execlineb -P
+cd rootfs/etc/s6-rc/source
+
+elglob -0 CONSUMERS *-log/consumer-for
+
+forx CONSUMER { $CONSUMERS }
+import -u CONSUMER
+
+backtick -ni PRODUCER {
+    redirfd -r 0 $CONSUMER
+    s6-cat
+} 
+import -u PRODUCER
+
+if -t { test ! -d $PRODUCER }
+backtick -ni CONSDIR { s6-dirname $CONSUMER }
+import -u CONSDIR
+echo
+s6-rmrf $CONSDIR
