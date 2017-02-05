@@ -4,12 +4,14 @@ ARCH ?= $(MY_ARCH)
 MIRROR := http://dl-cdn.alpinelinux.org/alpine/latest-stable
 APK_VERSION := 2.6.8-r2
 
+APK := apk-tools/sbin/apk.static
+
 DISKIMG := disks/disk-$(ARCH).raw
 DISKSIZE := 8
 
 ROOTDIR ?= mnt
 
-.PHONY: all clean dist-clean bootstrap mount umount chroot run
+.PHONY: all clean dist-clean bootstrap mount umount chroot run sync
 
 all: bootstrap
 
@@ -21,7 +23,7 @@ dist-clean: clean
 
 bootstrap: | $(ROOTDIR)/bin/ash
 
-$(ROOTDIR)/bin/ash: | mount apk-tools/sbin/apk.static .cache/keys
+$(ROOTDIR)/bin/ash: | mount ${APK} .cache/keys
 	tools/bootstrap ${ROOTDIR} ${ARCH} ${MIRROR}
 
 mount: | .cache $(ROOTDIR) $(DISKIMG)
@@ -30,7 +32,7 @@ mount: | .cache $(ROOTDIR) $(DISKIMG)
 $(DISKIMG): | disks
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
-apk-tools/sbin/apk.static: .cache/apk-tools-static.apk | apk-tools
+${APK}: .cache/apk-tools-static.apk | apk-tools
 	tar -xvf $< --one-top-level=apk-tools
 	touch $@
 
@@ -48,6 +50,9 @@ chroot: | mount $(ROOTDIR)/bin/ash
 
 run: | umount $(DISKIMG)
 	tools/run $(DISKIMG)
+
+sync: | mount ${APK}
+	tools/sync_overlay ${ROOTDIR}
 
 .cache apk-tools $(ROOTDIR) disks:
 	mkdir $@

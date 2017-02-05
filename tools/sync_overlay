@@ -1,0 +1,16 @@
+#!/bin/execlineb 
+importas -ui ROOTDIR 1
+emptyenv -P
+
+if {
+    elglob OLD rootfs/*
+    s6-rmrf $OLD
+}
+
+pipeline {
+    sudo
+    backtick -ni NEW { apk-tools/sbin/apk.static -p ${ROOTDIR} audit -qr }
+    import -su NEW
+    tar -C ${ROOTDIR} -v -c $NEW
+} 
+tar -C rootfs -x -v -p
