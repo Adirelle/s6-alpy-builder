@@ -9,6 +9,7 @@ emptyenv -P
 define -s APK "apk-tools/sbin/apk.static --root=${ROOTDIR} --arch=${ARCH}"
 
 sudo
+umask 0022
 
 if {
     mkdir -p ${ROOTDIR}/etc/apk/keys

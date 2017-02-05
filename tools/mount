@@ -10,6 +10,7 @@ ifelse { tools/is_mounted $ROOTDIR } {
 }
 
 sudo
+umask 0022
 
 backtick -ni LODEV { losetup -f --show -P $IMGFILE }
 import -ui LODEV
