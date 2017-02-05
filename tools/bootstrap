@@ -60,6 +60,8 @@ foreground {
         import -u KVER
         /sbin/mkinitfs $KVER
     }
+    if { extlinux --install /boot --device /dev/sda1 }
+    if { update-extlinux }
     if { s6-rc-compile -v2 /etc/s6-rc/compiled.initial /etc/s6-rc/source }
     ln -s /etc/s6-rc/compiled.initial /etc/s6-rc/compiled
 }
