@@ -30,7 +30,7 @@ if { ln -snf sda2 /dev/root }
 
 if { $APK add --initdb }
 if { $APK update }
-if { $APK add alpine-baselayout apk-tools execline }
+if { $APK add alpine-baselayout alpine-keys apk-tools execline busybox }
 if {
     redirfd -w 1 /etc/resolv.conf
     tools/mkresolvconf
@@ -40,11 +40,8 @@ if {
     export PATH /bin:/usr/bin:/sbin:/usr/sbin
     chroot ${ROOTDIR}
     if {
-        apk add
-            alpine-baselayout apk-tools
-            alpine-keys
+        apk add --no-scripts
             syslinux linux-grsec linux-virtgrsec
-            e2fsprogs
             s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init
     }
     dd if=/usr/share/syslinux/gptmbr.bin of=/dev/sda
@@ -66,6 +63,8 @@ foreground {
     if { extlinux --install /boot --device /dev/sda1 }
     if { update-extlinux }
     if { s6-rc-compile -v2 /etc/s6-rc/compiled.initial /etc/s6-rc/source }
-    ln -s /etc/s6-rc/compiled.initial /etc/s6-rc/compiled
+    if { ln -s /etc/s6-rc/compiled.initial /etc/s6-rc/compiled }
+    apk add
+        e2fsprogs e2fsprogs-doc
 }
 
