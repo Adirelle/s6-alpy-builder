@@ -32,8 +32,8 @@ if { $APK add --initdb }
 if { $APK update }
 if { $APK add alpine-baselayout apk-tools execline }
 if {
-    redirfd -w 1 cp /etc/resolv.conf
-    s6-echo nameserver 8.8.8.8
+    redirfd -w 1 /etc/resolv.conf
+    tools/mkresolvconf
 }
 
 if {
