@@ -1,0 +1,9 @@
+#!/bin/execlineb -S1
+backtick -ni TARGET { s6-linkname -f $1 }
+import -u TARGET
+pipeline {
+    redirfd -r 0 /proc/mounts
+    s6-cut -d" " -f2
+}
+redirfd -w 1 /dev/null
+s6-grep ^${TARGET}$

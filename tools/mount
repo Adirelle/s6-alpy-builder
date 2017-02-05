@@ -5,6 +5,10 @@ multisubstitute {
 }
 emptyenv -P
 
+ifelse { tools/is_mounted $ROOTDIR } {
+    exit 0
+}
+
 sudo
 
 backtick -ni LODEV { losetup -f --show -P $IMGFILE }
@@ -13,10 +17,8 @@ import -ui LODEV
 ifte {
     exit 0
 } {
-    foreground { umount -R $ROOTDIR }
-    foreground { losetup -d $LODEV }
-    foreground { rm -f ${ROOTDIR}/.mounted }
-    touch ${ROOTDIR}/.unmounted
+    if { umount -R $ROOTDIR }
+    losetup -d $LODEV
 }
 
 if { mount ${LODEV}p2 ${ROOTDIR} }
@@ -43,7 +45,5 @@ if {
 if { cp -a ${LODEV} ${ROOTDIR}/dev/sda }
 if { cp -a ${LODEV}p1 ${ROOTDIR}/dev/sda1 }
 if { cp -a ${LODEV}p2 ${ROOTDIR}/dev/sda2 }
-if { cp -a ${LODEV}p3 ${ROOTDIR}/dev/sda3 }
+cp -a ${LODEV}p3 ${ROOTDIR}/dev/sda3
 
-foreground { rm -f ${ROOTDIR}/.unmounted }
-touch ${ROOTDIR}/.mounted

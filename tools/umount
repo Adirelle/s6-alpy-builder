@@ -5,14 +5,14 @@ multisubstitute {
 }
 emptyenv -P
 
+ifelse -n { tools/is_mounted $ROOTDIR } {
+    exit 0
+}
+
 sudo
 if { umount -R $ROOTDIR }
 foreground { sync }
-if {
-    forbacktickx -n LODEV { losetup -nO NAME -j $IMGFILE }
-    import -u LODEV
-    losetup -d $LODEV
-}
 
-foreground { rm -f ${ROOTDIR}/.mounted }
-touch ${ROOTDIR}/.unmounted
+forbacktickx -n LODEV { losetup -nO NAME -j $IMGFILE }
+import -u LODEV
+losetup -d $LODEV
