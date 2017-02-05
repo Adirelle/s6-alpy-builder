@@ -26,18 +26,41 @@ if {
 }
 
 if { ln -s ../../var/cache/apk ${ROOTDIR}/etc/apk/cache }
+if { ln -snf sda2 /dev/root }
+
 if { $APK add --initdb }
 if { $APK update }
-if { $APK add alpine-baselayout apk-tools }
+if { $APK add alpine-baselayout apk-tools execline }
 if { cp /etc/resolv.conf ${ROOTDIR}/etc/resolv.conf }
+
+if {
+    export PATH /bin:/usr/bin:/sbin:/usr/sbin
+    chroot ${ROOTDIR}
+    if {
+        apk add
+            alpine-baselayout apk-tools
+            alpine-keys
+            syslinux linux-grsec linux-virtgrsec
+            e2fsprogs
+            s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init
+    }
+    dd if=/usr/share/syslinux/gptmbr.bin of=/dev/sda
+}
+
+if {
+    elglob FILES rootfs/*
+    cp -rP --preserve=links,mode ${FILES} ${ROOTDIR}
+}
 
 foreground {
     export PATH /bin:/usr/bin:/sbin:/usr/sbin
     chroot ${ROOTDIR}
-    apk add
-        alpine-baselayout apk-tools
-        alpine-keys
-        syslinux linux-grsec linux-virtgrsec
-        e2fsprogs
-        execline s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init
+    if {
+        forbacktickx KVER { s6-ls /lib/modules }
+        import -u KVER
+        /sbin/mkinitfs $KVER
+    }
+    if { s6-rc-compile -v2 /etc/s6-rc/compiled.initial /etc/s6-rc/source }
+    ln -s /etc/s6-rc/compiled.initial /etc/s6-rc/compiled
 }
+
