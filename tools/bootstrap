@@ -25,6 +25,7 @@ if {
     s6-echo ${MIRROR}/main
 }
 
+if { ln -s ../../var/cache/apk ${ROOTDIR}/etc/apk/cache }
 if { $APK add --initdb }
 if { $APK update }
 if { $APK add alpine-baselayout apk-tools }

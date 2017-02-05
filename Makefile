@@ -51,6 +51,7 @@ run: | umount $(DISKIMG)
 
 .cache apk-tools $(ROOTDIR) disks:
 	mkdir $@
+	chmod g+ws $@
 
 ifneq ($(MY_ARCH), $(ARCH))
 bootstrap: $(ROOTDIR)$(QEMU_USER)
