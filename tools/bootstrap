@@ -27,13 +27,18 @@ if {
 
 if { ln -s ../../var/cache/apk ${ROOTDIR}/etc/apk/cache }
 if { ln -snf sda2 /dev/root }
+if {
+    redirfd -w 1 ${ROOTDIR}/etc/resolv.conf
+    tools/mkresolvconf
+}
 
 if { $APK add --initdb }
 if { $APK update }
-if { $APK add alpine-baselayout alpine-keys apk-tools execline busybox }
 if {
-    redirfd -w 1 /etc/resolv.conf
-    tools/mkresolvconf
+    $APK add
+        alpine-baselayout alpine-keys
+        apk-tools
+        execline busybox
 }
 
 if {
