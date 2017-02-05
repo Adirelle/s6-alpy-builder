@@ -35,10 +35,10 @@ apk-tools/sbin/apk.static: .cache/apk-tools-static.apk | apk-tools
 	touch $@
 
 .cache/apk-tools-static.apk: | .cache
-	wget -O $@ $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
+	wget -N -O $@ $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
 
 .cache/keys: | .cache
-	wget -r -nd -nH -L -np -nv -A alpine-*.rsa.pub -P .cache/keys https://www.alpinelinux.org/keys/
+	wget -N -r -nd -nH -L -np -nv -A alpine-*.rsa.pub -P .cache/keys https://www.alpinelinux.org/keys/
 
 umount:
 	tools/umount $(DISKIMG) $(ROOTDIR)
