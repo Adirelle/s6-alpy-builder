@@ -65,6 +65,8 @@ foreground {
     if { s6-rc-compile -v2 /etc/s6-rc/compiled.initial /etc/s6-rc/source }
     if { ln -s /etc/s6-rc/compiled.initial /etc/s6-rc/compiled }
     apk add
+        man man-pages mdocml-apropos syslinux-doc
         e2fsprogs e2fsprogs-doc
+        bkeymaps
 }
 
