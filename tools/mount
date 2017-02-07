@@ -2,6 +2,7 @@
 multisubstitute {
     importas -ui IMGFILE 1
     importas -ui ROOTDIR 2
+    importas -ui CACHEDIR 3
 }
 emptyenv -P
 
@@ -35,7 +36,7 @@ if { mount -t tmpfs tmpfs ${ROOTDIR}/tmp }
 
 if { mount -o bind /proc ${ROOTDIR}/proc }
 if { mount -o bind /sys ${ROOTDIR}/sys }
-if { mount -o bind .cache ${ROOTDIR}/var/cache/apk }
+if { mount -o bind ${CACHEDIR} ${ROOTDIR}/var/cache/apk }
 
 # Do not bind /dev, we want to override the disk devices
 if { mount -t tmpfs tmpfs ${ROOTDIR}/dev }
@@ -47,4 +48,3 @@ if { cp -a ${LODEV} ${ROOTDIR}/dev/sda }
 if { cp -a ${LODEV}p1 ${ROOTDIR}/dev/sda1 }
 if { cp -a ${LODEV}p2 ${ROOTDIR}/dev/sda2 }
 cp -a ${LODEV}p3 ${ROOTDIR}/dev/sda3
-

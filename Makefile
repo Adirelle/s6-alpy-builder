@@ -2,59 +2,66 @@
 MY_ARCH != uname -m
 ARCH ?= $(MY_ARCH)
 MIRROR := http://dl-cdn.alpinelinux.org/alpine/latest-stable
-APK_VERSION := 2.6.8-r2
 
-APK := apk-tools/sbin/apk.static
-
-DISKIMG := disks/disk-$(ARCH).raw
-DISKSIZE := 8
-
+STATICAPKDIR := apk-tools
+CACHEDIR := .cache
+DISKDIR := disks
 ROOTDIR ?= mnt
+OVERLAYDIR := rootfs
+
+STATICAPK_VERSION := 2.6.8-r2
+STATICAPK := $(STATICAPKDIR)/sbin/apk.static
+
+DISKIMG := $(DISKDIR)/disk-$(ARCH).raw
+DISKSIZE := 8
 
 .PHONY: all clean dist-clean bootstrap mount umount chroot run sync
 
 all: bootstrap
 
 clean: umount
-	rm -f ${DISKIMG}
+	rm -f $(DISKIMG)
 
 dist-clean: clean
-	rm -rf .cache/* apk-tools
+	rm -rf $(CACHEDIR)/* $(STATICAPKDIR)
 
 bootstrap: | $(ROOTDIR)/bin/ash
 
-$(ROOTDIR)/bin/ash: | mount ${APK} .cache/keys
-	tools/bootstrap ${ROOTDIR} ${ARCH} ${MIRROR}
+$(ROOTDIR)/bin/ash: | mount $(STATICAPK) $(CACHEDIR)/keys
+	tools/bootstrap $(ROOTDIR) $(ARCH) $(MIRROR) $(OVERLAYDIR) $(CACHEDIR) $(STATICAPK)
 
-mount: | .cache $(ROOTDIR) $(DISKIMG)
-	tools/mount $(DISKIMG) $(ROOTDIR)
+mount: | $(CACHEDIR) $(ROOTDIR) $(DISKIMG)
+	tools/mount $(DISKIMG) $(ROOTDIR) $(CACHEDIR)
 
-$(DISKIMG): | disks
+$(DISKIMG): | $(DISKDIR)
 	tools/mkdisk $(DISKIMG) $(DISKSIZE)
 
-${APK}: .cache/apk-tools-static.apk | apk-tools
-	tar -xvf $< --one-top-level=apk-tools
+$(STATICAPK): $(CACHEDIR)/apk-tools-static.apk | $(STATICAPKDIR)
+	tar -xvf $< --one-top-level=$(STATICAPKDIR)
 	touch $@
 
-.cache/apk-tools-static.apk: | .cache
-	wget -N -O $@ $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(APK_VERSION).apk
+$(CACHEDIR)/apk-tools-static.apk: | $(CACHEDIR)
+	wget -N -O $@ $(MIRROR)/main/$(MY_ARCH)/apk-tools-static-$(STATICAPK_VERSION).apk
 
-.cache/keys: | .cache
-	wget -N -r -nd -nH -L -np -nv -A alpine-*.rsa.pub -P .cache/keys https://www.alpinelinux.org/keys/
+$(CACHEDIR)/keys: | $(CACHEDIR)
+	wget -N -r -nd -nH -L -np -nv -A alpine-*.rsa.pub -P $@ https://www.alpinelinux.org/keys/
 
 umount:
 	tools/umount $(DISKIMG) $(ROOTDIR)
 
 chroot: | mount $(ROOTDIR)/bin/ash
-	tools/chroot ${ROOTDIR}
+	tools/chroot $(ROOTDIR)
 
 run: | umount $(DISKIMG)
 	tools/run $(DISKIMG)
 
-sync: | mount ${APK}
-	tools/sync_overlay ${ROOTDIR}
+sync: | mount $(STATICAPK)
+	tools/sync_overlay $(ROOTDIR) $(OVERLAYDIR) $(STATICAPK)
 
-.cache apk-tools $(ROOTDIR) disks:
+$(STATICAPKDIR) $(ROOTDIR) $(DISKDIR):
+	mkdir $@
+
+$(CACHEDIR):
 	mkdir $@
 	chmod g+ws $@
 

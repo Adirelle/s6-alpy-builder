@@ -1,16 +1,20 @@
-#!/bin/execlineb 
-importas -ui ROOTDIR 1
+#!/bin/execlineb
+multisubstitute {
+    importas -ui ROOTDIR 1
+    importas -ui OVERLAYDIR 2
+    importas -ui STATICAPK 3
+}
 emptyenv -P
 
 if {
-    elglob OLD rootfs/*
+    elglob OLD ${OVERLAYDIR}/*
     s6-rmrf $OLD
 }
 
 pipeline {
     sudo
-    backtick -ni NEW { apk-tools/sbin/apk.static -p ${ROOTDIR} audit -qr }
+    backtick -ni NEW { ${STATICAPK} -p ${ROOTDIR} audit -qr }
     import -su NEW
     tar -C ${ROOTDIR} -v -c $NEW
-} 
-tar -C rootfs -x -v -p
+}
+tar -C ${OVERLAYDIR} -x -v -p

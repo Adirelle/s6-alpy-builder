@@ -3,10 +3,13 @@ multisubstitute {
     importas -ui ROOTDIR 1
     importas -ui ARCH 2
     importas -ui MIRROR 3
+    importas -ui OVERLAYDIR 4
+    importas -ui CACHEDIR 5
+    importas -ui STATICAPK 6
 }
 emptyenv -P
 
-define -s APK "apk-tools/sbin/apk.static --root=${ROOTDIR} --arch=${ARCH}"
+define -s APK "${STATICAPK} --root=${ROOTDIR} --arch=${ARCH}"
 
 sudo
 umask 0022
@@ -16,7 +19,7 @@ if {
 }
 
 if {
-    elglob KEYS .cache/keys/*.pub
+    elglob KEYS ${CACHEDIR}/keys/*.pub
     cp -a $KEYS ${ROOTDIR}/etc/apk/keys
 }
 
@@ -53,7 +56,7 @@ if {
 }
 
 if {
-    elglob FILES rootfs/*
+    elglob FILES ${OVERLAYDIR}/*
     cp -rP --preserve=links,mode ${FILES} ${ROOTDIR}
 }
 
@@ -74,4 +77,3 @@ foreground {
         e2fsprogs e2fsprogs-doc
         bkeymaps
 }
-
