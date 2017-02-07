@@ -27,7 +27,7 @@ if { mount ${LODEV}p2 ${ROOTDIR} }
 
 if {
     cd ${ROOTDIR}
-    mkdir -p boot dev proc sys tmp var/cache/apk
+    mkdir -p boot dev proc sys tmp var/cache/apk etc
 }
 
 if { mount ${LODEV}p1 ${ROOTDIR}/boot }
