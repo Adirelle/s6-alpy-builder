@@ -17,7 +17,7 @@ OVERLAY_TARGETS := $(patsubst $(OVERLAYDIR)/%,$(ROOTDIR)/%,$(OVERLAY_SRCS))
 
 .PHONY: bootstrap-apk bootstrap-kernel
 
-bootstrap: | bootstrap-apk bootstrap-kernel bootstrap-overlay
+bootstrap: | bootstrap-apk bootstrap-kernel bootstrap-overlay bootstrap-s6-init bootstrap-s6-rc
 
 bootstrap-apk: | mount $(ROOTDIR)/sbin/apk
 
@@ -40,14 +40,17 @@ $(CACHED_KEYS): $(CACHEDIR)/keys/%: | $(CACHEDIR)/keys
 $(CACHEDIR)/keys: | $(CACHEDIR)
 	mkdir -p $@
 
-$(ROOTDIR)/etc/apk/repositories:
+$(ROOTDIR)/etc/apk/repositories: | $(ROOTDIR)/etc/apk
 	$(SUDO) sh -c 'echo $(MIRROR)/main >$@'
 
-$(ROOTDIR)/etc/apk/keys:
+$(ROOTDIR)/etc/apk/keys: | $(ROOTDIR)/etc/apk
 	$(SUDO) mkdir -p $@
 
-$(ROOTDIR)/etc/apk/cache:
+$(ROOTDIR)/etc/apk/cache: | $(ROOTDIR)/etc/apk
 	$(SUDO) ln -s ../../var/cache/apk $@
+
+$(ROOTDIR)/etc/apk:
+	$(SUDO) mkdir -p $@
 
 bootstrap-kernel: | $(ROOTDIR)/boot/ldlinux.sys $(ROOTDIR)/boot/extlinux.conf $(INITRAMFS)
 
@@ -75,45 +78,19 @@ $(OVERLAY_TARGETS): $(ROOTDIR)/%: $(OVERLAYDIR)/%
 #$(ROOTDIR)/dev/root:
 # 	$(SUDO) ln -snf sda2 $(ROOTDIR)/dev/root
 #
-$(ROOTDIR)/usr/bin/s6-rc $(ROOTDIR)/usr/bin/s6-rc:
-#  	$(CHROOT) apk add s6 s6-rc
-#
-$(ROOTDIR)/usr/bin/s6-init: $(ROOTDIR)/usr/bin/s6-rc
-	$(CHROOT) apk add s6-portable-utils s6-linux-utils s6-linux-init
 
-$(ROOTDIR)/etc/s6-rc/compiled: $(ROOTDIR)/usr/bin/s6-rc $(ROOTDIR)/etc/s6-rc/source
+bootstrap-s6-init: $(filter $(ROOTDIR)/etc/s6-init/%,$(OVERLAY_TARGETS)) | $(ROOTDIR)/usr/bin/s6-init
+
+bootstrap-s6-rc: | $(ROOTDIR)/etc/s6-rc/compiled
+
+$(ROOTDIR)/etc/s6-rc/compiled: $(filter $(ROOTDIR)/etc/s6-rc/source/%,$(OVERLAY_TARGETS)) | $(ROOTDIR)/usr/bin/s6-rc 
 	$(CHROOT) s6-rc-compile -v2 /etc/s6-rc/compiled.initial /etc/s6-rc/source
 	ln -snf $(ROOTDIR)/etc/s6-rc/compiled.initial $(ROOTDIR)/etc/s6-rc/compiled
 
-# if {
-#     export PATH /bin:/usr/bin:/sbin:/usr/sbin
-#     chroot ${ROOTDIR}
-#     if {
-#         apk add --no-scripts
-#             syslinux linux-grsec linux-virtgrsec
-#             s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init
-#     }
-# }
-#
-# if {
-#     elglob FILES ${OVERLAYDIR}/*
-#     cp -rP --preserve=links,mode ${FILES} ${ROOTDIR}
-# }
-#
-# foreground {
-#     export PATH /bin:/usr/bin:/sbin:/usr/sbin
-#     chroot ${ROOTDIR}
-#     if {
-#         forbacktickx KVER { s6-ls /lib/modules }
-#         import -u KVER
-#         /sbin/mkinitfs $KVER
-#     }
-#     if {  }
-#     if { update-extlinux }
-#     if {  }
-#     if {  }
+$(ROOTDIR)/usr/bin/s6-rc $(ROOTDIR)/usr/bin/s6-init:
+	$(CHROOT) apk add s6 s6-rc s6-portable-utils s6-linux-utils s6-linux-init¶
+
 #     apk add
 #         man man-pages mdocml-apropos syslinux-doc
 #         e2fsprogs e2fsprogs-doc
 #         bkeymaps
-# }
