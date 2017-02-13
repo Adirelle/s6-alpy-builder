@@ -10,10 +10,10 @@ INITRAMFS := $(foreach FLAVOR,$(KERNEL_FLAVORS),$(ROOTDIR)/boot/initramfs-$(FLAV
 SUDO := sudo
 CHROOT := $(SUDO) chroot $(ROOTDIR) env PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 
-recurse = $(foreach d,$(wildcard $1*),$(call recurse,$(d)/) $(d))
-
-OVERLAY_SRCS := $(call recurse,$(OVERLAYDIR)/)
+OVERLAY_SRCS != find $(OVERLAYDIR) \! -type d -printf "%p\n"
+OVERLAY_DIRS != find $(OVERLAYDIR) -type d -printf "%p\n"
 OVERLAY_TARGETS := $(patsubst $(OVERLAYDIR)/%,$(ROOTDIR)/%,$(OVERLAY_SRCS))
+OVERLAY_TARGET_DIRS := $(patsubst $(OVERLAYDIR)/%,$(ROOTDIR)/%,$(OVERLAY_DIRS))
 
 .PHONY: bootstrap-apk bootstrap-kernel
 
@@ -37,13 +37,13 @@ $(CACHED_KEYS): $(CACHEDIR)/keys/%: | $(CACHEDIR)/keys
 $(CACHEDIR)/keys: | $(CACHEDIR)
 	mkdir -p $@
 
-$(ROOTDIR)/etc/apk/repositories:
+$(ROOTDIR)/etc/apk/repositories: | $(ROOTDIR)/etc/apk
 	$(SUDO) sh -c 'echo $(MIRROR)/main >$@'
 
-$(ROOTDIR)/etc/apk/keys:
+$(ROOTDIR)/etc/apk/keys: | $(ROOTDIR)/etc/apk
 	$(SUDO) mkdir -p $@
 
-$(ROOTDIR)/etc/apk/cache:
+$(ROOTDIR)/etc/apk/cache: | $(ROOTDIR)/etc/apk
 	$(SUDO) ln -s ../../var/cache/apk $@
 
 bootstrap-kernel: | $(ROOTDIR)/boot/ldlinux.sys $(ROOTDIR)/boot/extlinux.conf $(INITRAMFS)
@@ -67,7 +67,10 @@ $(ROOTDIR)/sbin/mkinitfs $(ROOTDIR)/sbin/extlinux: | bootstrap-apk
 bootstrap-overlay: | $(OVERLAY_TARGETS)
 
 $(OVERLAY_TARGETS): $(ROOTDIR)/%: $(OVERLAYDIR)/%
-	$(SUDO) cp -P --preserve=mode,links,timestamps $< $@
+	$(SUDO) cp --no-dereference --parents --preserve=mode,links,timestamps $< $(ROOTDIR)
+
+$(OVERLAY_TARGET_DIRS): %:
+	$(SUDO) mkdir -p $@
 
 #$(ROOTDIR)/dev/root:
 # 	$(SUDO) ln -snf sda2 $(ROOTDIR)/dev/root
