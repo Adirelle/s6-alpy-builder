@@ -28,9 +28,6 @@ $(ROOTDIR)/lib/apk/db/lock: | $(STATICAPK) $(ROOTDIR)/etc/resolv.conf $(INSTALLE
 	$(SUDO) $(STATICAPK) --root=$(ROOTDIR) --arch=$(ARCH) add --initdb
 	$(SUDO) $(STATICAPK) --root=$(ROOTDIR) --arch=$(ARCH) update
 
-$(ROOTDIR)/etc/resolv.conf:
-	$(SUDO) sh -c '$(PWD)/tools/mkresolvconf >$@'
-
 $(INSTALLED_KEYS): $(ROOTDIR)/etc/apk/keys/%: $(CACHEDIR)/keys/% | $(ROOTDIR)/etc/apk/keys
 	$(SUDO) cp -av $< $@
 
