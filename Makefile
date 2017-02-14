@@ -10,11 +10,13 @@ ROOTDIR ?= mnt
 OVERLAYDIR := rootfs
 
 STATICAPK_VERSION := 2.6.8-r2
-STATICAPK := $(STATICAPKDIR)/sbin/apk.static
 APK_KEYS_ID := 4a6a0840 4d07755e 5243ef4b 524d27bb 5261cecb 58199dcc
 
 DISKIMG := $(DISKDIR)/disk-$(ARCH).raw
 DISKSIZE := 8
+
+SUDO := sudo
+CHROOT := $(SUDO) chroot $(ROOTDIR) env PATH="/sbin:/usr/sbin:/bin:/usr/bin"
 
 .PHONY: all clean dist-clean bootstrap mount umount chroot run sync
 
@@ -32,6 +34,8 @@ mount: | $(CACHEDIR) $(ROOTDIR) $(DISKIMG)
 
 umount:
 	tools/umount $(DISKIMG) $(ROOTDIR)
+
+bootstrap: | mount apk kernel
 
 chroot: | mount $(ROOTDIR)/bin/ash
 	tools/chroot $(ROOTDIR)
