@@ -17,6 +17,7 @@ DISKSIZE := 8
 
 SUDO := sudo
 CHROOT := $(SUDO) chroot $(ROOTDIR) env PATH="/sbin:/usr/sbin:/bin:/usr/bin"
+CP := cp  -dr --preserve=mode,timestamps,links
 
 .PHONY: all clean dist-clean bootstrap mount umount chroot run sync
 

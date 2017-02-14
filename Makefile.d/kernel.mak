@@ -31,4 +31,4 @@ $(KIMAGES): $(ROOTDIR)/boot/vmlinuz-%: | apk
 	$(CHROOT) apk add --no-scripts linux-$(*)
 
 $(MKINITCONF): $(ROOTDIR)/etc/mkinitfs/%: $(OVERLAYDIR)/etc/mkinitfs/%
-	$(SUDO) cp $< $@
+	$(SUDO) $(CP) $< $@

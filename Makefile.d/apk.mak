@@ -33,7 +33,7 @@ $(STATICAPKDIR):
 	mkdir -p $@
 
 $(ROOTDIR)/etc/resolv.conf: $(OVERLAYDIR)/etc/resolv.conf | $(ROOTDIR)/etc
-	$(SUDO) cp $< $@
+	$(SUDO) $(CP) $< $@
 
 $(ROOTDIR)/etc/apk/repositories: | $(ROOTDIR)/etc/apk
 	$(SUDO) sh -c 'echo $(MIRROR)/main >$@'
@@ -42,7 +42,7 @@ $(ROOTDIR)/etc/apk/cache:
 	$(SUDO) ln -snf ../../var/cache/apk $@
 
 $(INSTALLED_APK_KEYS): $(ROOTDIR)/etc/apk/%: $(CACHEDIR)/% | $(ROOTDIR)/etc/apk/keys
-	$(SUDO) cp $< $@
+	$(SUDO) $(CP) $< $@
 
 $(CACHED_APK_KEYS): | $(CACHEDIR)/keys
 	wget -nv -O '$@' https://www.alpinelinux.org/keys/'$(@F)'
