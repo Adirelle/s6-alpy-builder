@@ -15,10 +15,12 @@ apk-keys:
 	echo $(INSTALLED_APK_KEYS)
 	echo $(CACHED_APK_KEYS)
 
-$(ROOTDIR)/sbin/apk: $(STATICAPK) $(ROOTDIR)/etc/resolv.conf $(ROOTDIR)/etc/apk/repositories $(ROOTDIR)/etc/apk/cache $(ROOTDIR)/var/lib/apk $(INSTALLED_APK_KEYS)
-	$(APK) add --initdb
+$(ROOTDIR)/sbin/apk: | $(STATICAPK) $(ROOTDIR)/etc/resolv.conf $(ROOTDIR)/etc/apk/repositories $(INSTALLED_APK_KEYS) $(ROOTDIR)/lib/apk/db $(ROOTDIR)/etc/apk/cache
 	$(APK) update
 	$(APK) add alpine-baselayout alpine-keys apk-tools execline busybox
+
+$(ROOTDIR)/lib/apk/db: $(STATICAPK)
+	$(APK) add --initdb
 
 $(STATICAPK): $(APK_ARCHIVE) | $(STATICAPKDIR)
 	tar -xvf $< --one-top-level=$(STATICAPKDIR)
@@ -48,5 +50,5 @@ $(CACHED_APK_KEYS): | $(CACHEDIR)/keys
 $(CACHEDIR)/keys: | $(CACHEDIR)
 	mkdir -p $@
 
-$(ROOTDIR)/etc $(ROOTDIR)/etc/apk $(ROOTDIR)/etc/apk/keys $(ROOTDIR)/var/lib/apk:
+$(ROOTDIR)/etc $(ROOTDIR)/etc/apk $(ROOTDIR)/etc/apk/keys:
 	$(SUDO) mkdir -p $@
