@@ -7,28 +7,28 @@ INITRAMFS := $(addprefix $(ROOTDIR)/boot/initramfs-,$(KERNEL_FLAVORS))
 MKINITCONF_SRC != find $(OVERLAYDIR)/etc/mkinitfs -type f
 MKINITCONF := $(patsubst $(OVERLAYDIR)/%,$(ROOTDIR)/%,$(MKINITCONF_SRC))
 
-.PHONY: kernel
+.PHONY: kernel kernel-packages
 
-kernel: | mount apk $(ROOTDIR)/boot/extlinux.conf $(INITRAMFS)
+kernel: | mount kernel-packages $(ROOTDIR)/boot/extlinux.conf $(INITRAMFS)
 
-$(ROOTDIR)/boot/extlinux.conf: $(OVERLAYDIR)/etc/update-extlinux.conf | $(ROOTDIR)/boot/ldlinux.sys
+kernel-packages: | apk
+	$(CHROOT) apk add --no-scripts s6-portable-utils s6-linux-utils syslinux $(addprefix linux-,$(KERNEL_FLAVORS))
+
+$(ROOTDIR)/boot/extlinux.conf: $(ROOTDIR)/etc/update-extlinux.conf | $(ROOTDIR)/boot/ldlinux.sys
 	$(CHROOT) update-extlinux
 
-$(ROOTDIR)/boot/ldlinux.sys: $(ROOTDIR)/sbin/extlinux | $(ROOTDIR)/dev/root
+$(ROOTDIR)/etc/update-extlinux.conf: $(OVERLAYDIR)/etc/update-extlinux.conf
+	$(SUDO) $(CP) $< $@
+
+$(ROOTDIR)/boot/ldlinux.sys: | $(ROOTDIR)/dev/root
 	$(CHROOT) dd if=/usr/share/syslinux/gptmbr.bin of=/dev/sda
 	$(CHROOT) extlinux --install /boot
-
-$(ROOTDIR)/sbin/extlinux: | apk
-	$(CHROOT) apk add --no-scripts syslinux
 
 $(ROOTDIR)/dev/root:
 	$(SUDO) ln -snf sda2 ${ROOTDIR}/dev/root
 
-$(INITRAMFS): $(ROOTDIR)/boot/initramfs-%: $(ROOTDIR)/boot/vmlinuz-% $(MKINITCONF) | $(ROOTDIR)/sbin/mkinitfs
-	$(CHROOT) mkinitfs $$(basename "$(ROOTDIR)/lib/modules/*-$(*)")
-
-$(KIMAGES): $(ROOTDIR)/boot/vmlinuz-%: | apk
-	$(CHROOT) apk add --no-scripts linux-$(*)
+$(INITRAMFS): $(ROOTDIR)/boot/initramfs-%: $(MKINITCONF)
+	$(CHROOT) execlineb -c 'elglob MODDIR /lib/modules/*-$(*) backtick -n KVER { basename $$MODDIR } import -u KVER mkinitfs $$KVER'
 
 $(MKINITCONF): $(ROOTDIR)/etc/mkinitfs/%: $(OVERLAYDIR)/etc/mkinitfs/%
 	$(SUDO) $(CP) $< $@
